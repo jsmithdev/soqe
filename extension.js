@@ -22,9 +22,15 @@ exports.activate = activate
  */
 function activate(context) {
 
-	console.log('Congratulations, your extension "soql" is now active!')
-
 	const task = vscode.commands.registerCommand('extension.soql', async function () {
+
+		const username = await getUserName()
+
+		if(!username){
+			return toast(`No defaultusername found in ${WORKING_DIR}/.sfdx/sfdx-config.json`, 'info')
+		}
+		
+		toast(username, 'status')
 
 		const panel = vscode.window.createWebviewPanel(
 			'soqlView',
@@ -43,23 +49,15 @@ function activate(context) {
 		panel.webview.onDidReceiveMessage(async data => {
 			
 			const { query } = data //.replace(/\n/g, '').trim()
-			
+
+			//todo clean_query; remove line breaks, trim
+
 			console.log(query)
-
-			//todo raw_query; remove line breaks, trim
-
-			const username = await getUserName()
-
-			if(!username){
-				return toast(`No username found at ${WORKING_DIR}/.sfdx/sfdx-config.json`, 'info')
-			}
-			
-			toast(username, 'status')
 
 			const cmd = `sfdx force:data:soql:query --json -u ${username} -q "${query}" `
 
 			const results = await execute(cmd)
-			console.log('await execute results')
+			console.log('awaited execute results')
 			console.log(results)
 
 			panel.webview.postMessage(results)
@@ -81,11 +79,9 @@ function activate(context) {
 
 			fs.writeFile(file_path, JSON.stringify(slug))
 		})
+	})
 
-
-	});
-
-	context.subscriptions.push(task);
+	context.subscriptions.push(task)
 }
 
 // this method is called when your extension is deactivated
@@ -109,7 +105,8 @@ async function getUserName(){
 		const { defaultusername } = JSON.parse( data )
 
 		return defaultusername
-	} catch (error) {
+	}
+	catch (error) {
 		error( error )
 	}
 }
@@ -149,10 +146,15 @@ async function execute(cmd) {
 	}
 }
 
+/**
+ * 
+ * @param {String} path -- to use to see if it exists
+ */
 async function exists(path) {
 	try {
 
 		const result = await fs.access(path)
+
 		return result && result.code === 'ENOENT' ? false : true
 	}
 	catch (error) {
