@@ -3,6 +3,7 @@
 	"displayName": "soql",
 	"description": "Query Salesforce data",
 	"version": "0.0.1",
+	"publisher": "jamiesmiths",
 	"engines": {
 		"vscode": "^1.42.0"
 	},
