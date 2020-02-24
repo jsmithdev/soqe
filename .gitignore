@@ -4,3 +4,4 @@ node_modules
 *.vsix
 test/suite/extension.test.js
 test/runTest.js
+scratchpad.js
