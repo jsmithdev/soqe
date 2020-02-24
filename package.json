@@ -4,6 +4,15 @@
 	"description": "Query Salesforce data",
 	"version": "0.0.1",
 	"publisher": "jamiesmiths",
+
+	"repository": {
+		"url": "https://github.com/jsmithdev/soql",
+		"type": "git"
+	  },
+	"bugs": {
+		"url": "https://github.com/jsmithdev/soql/issues"
+	},
+	"license": "MIT",
 	"engines": {
 		"vscode": "^1.42.0"
 	},
