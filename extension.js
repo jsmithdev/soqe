@@ -30,7 +30,7 @@ function activate(context) {
 			return toast(`No defaultusername found in ${WORKING_DIR}/.sfdx/sfdx-config.json`, 'info')
 		}
 		
-		toast(username, 'status')
+		//toast(`Using ${username}`, 'status')
 
 		const panel = vscode.window.createWebviewPanel(
 			'soqlView',
@@ -50,9 +50,13 @@ function activate(context) {
 			
 			const { query } = data //.replace(/\n/g, '').trim()
 
-			//todo clean_query; remove line breaks, trim
+			if(!query){
+				return toast('A valid SOQL query is required', 'info')
+			}
+			
 
-			console.log(query)
+			//todo clean_query; check & if need, remove line breaks, trim
+			//console.log(query)
 
 			const cmd = `sfdx force:data:soql:query --json -u ${username} -q "${query}" `
 
@@ -122,7 +126,7 @@ function toast( message, type ){
 		//todo
 	}
 	else if(type === 'status'){
-		setStatusBarMessage(message)
+		setStatusBarMessage(`ℹ️ SOQL: ${message}`)
 	}
 	else {
 		showInformationMessage(message)
@@ -180,59 +184,216 @@ return /* html */`
 
 <style>
 	div {
-		padding: 2px;
 		text-align: center;
+		padding: 5px;
   	}
+	div.editor {
+		padding-top: 1rem;
+	}
+	textarea {
+		width: 80%;
+		height: 15rem;
+		text-align: left;
+	}
 	button {
-		cursor:pointer;
-		margin: 3px;
+		cursor: pointer;
+		margin: .8rem;
 		border-radius: 5px;
 	}
 </style>
 
 <body>
-	<div>
-		<textarea>select id from account limit 2</textarea>
+
+	<div class="editor">
+		<textarea
+			autocomplete="on"
+			id="soql"
+		>select id, name, account.name, account.createdby.name from contact limit 2</textarea>
 	</div>
 
 	<div>
 		<button 
 			type="button" 
-			onclick="executeQuery()">
+			id="query">
 			  Query
 		</button>
 	</div>
 
 	<div style="border-bottom: 2px solid #ec00ff; padding: 5px"></div>
 
-	<div id="results"></div>
+	<div>
+		<b>Total Size: </b><span id="current_totalSize"></span>
+	</div>
+	<div>
+		<b>Current Query: </b>
+		<span id="current_query"></span>
+	</div>
+	<div id="results">
+		<table>
+			<thead></thead>
+			<tbody></tbody>
+		</table>
+	</div>
 </body>
 
 <script>
 
 const vscode = acquireVsCodeApi()
 
-function executeQuery() {
-	
-	const query = document.querySelector('textarea').value
-
-	vscode.postMessage({ query })
+const dom = {
+	current_query: document.getElementById('current_query'),
+	results: document.getElementById('results'),
+	soql: document.getElementById('soql'),
+	query: document.getElementById('query'),
+	current_totalSize: document.getElementById('current_totalSize'),
+	thead: document.querySelector('thead'),
+	tbody: document.querySelector('tbody'),
 }
 
+const cache = {
+	get query(){
+		return this._query
+	},
+	set query(new_query){
+		this._query = new_query
+		dom.current_query.textContent = new_query
+	},
+	get totalSize(){
+		return this._totalSize
+	},
+	set totalSize(totalSize){
+		this._totalSize = totalSize
+		dom.current_totalSize.textContent = totalSize
+	},
+}
+
+
+
+dom.query.onclick = event => executeQuery(dom.soql.value)
+
+
 window.addEventListener('message', event => {
+
 	const { data } = event
 
-	console.log('VIEW HAS INFO BACK')
-	//console.log(event)
-	
 	const {
 		done,
 		records,
 		totalSize,
-	} = data;
+	} = JSON.parse( data ).result;
 
-	console.dir( records )
+	cache.totalSize = totalSize
+
+	setupTable( records )
 })
+
+
+function executeQuery(query) {
+
+	cache.query = query
+
+	vscode.postMessage({ query })
+}
+
+
+function setupTable(records){
+
+	const cache = { columns: [] }
+
+	clearTable()
+
+	records.map(x => {
+
+		if(!cache.columns.length){
+
+			const potentials = Object.keys(x).filter(item => item !== 'attributes')
+    
+
+			const uniques = potentials.reduce((acc, item, index) => {
+
+				if(potentials.indexOf(item) === index){
+					
+					if(typeof x[item] === 'object'){
+						
+						const child_potentials = Object.keys(x[item]).filter(item => item !== 'attributes')
+
+						const children = child_potentials.map(child => {
+							if(typeof x[item][child] === 'object'){
+								//?
+								
+								const nested_child = Object.keys( x[item][child] ).filter(item => item !== 'attributes') //?
+								nested_child //?
+								return potentials[index]+' '+child+' '+nested_child
+							}
+							else{
+								return potentials[index]+' '+child
+							}
+							
+						})
+						
+						acc = [ ...acc, ...children ]
+					}
+					else {
+						acc = [ ...acc, potentials[index] ]
+					}
+				}
+
+				return acc
+			}, []);
+
+			uniques.map(col => {
+				
+				const th = document.createElement('th')
+				th.textContent = col
+				dom.thead.appendChild(th)
+				
+				cache.columns = [...cache.columns, col]
+			})
+		}
+
+
+		const values = cache.columns.map(key => {
+
+			if(x[key]){
+				return x[key]
+			}
+
+			const data = key.split(' ')
+
+			// nested child
+			if(data.length === 2){
+				return x[ data[0] ][ data[1] ]
+			}
+			// nested nested child
+			if(data.length === 3){
+
+				return x[ data[0] ][ data[1] ][ data[2] ]
+			}
+		})
+
+		const tr = document.createElement('tr')
+
+		values.map(value => {
+
+			const td = document.createElement('td')
+			td.textContent = value
+			tr.appendChild(td)
+		})
+
+		dom.tbody.appendChild(tr)
+  })
+}
+
+function clearTable(){
+	
+	while (dom.thead.lastElementChild) {
+		dom.thead.removeChild(dom.thead.lastElementChild);
+	}
+	while (dom.tbody.lastElementChild) {
+		dom.tbody.removeChild(dom.tbody.lastElementChild);
+	}
+	return undefined
+}
 
 </script>
 </html>
