@@ -1,0 +1,6 @@
+.history
+node_modules
+.vscode-test/
+*.vsix
+test/suite/extension.test.js
+test/runTest.js
