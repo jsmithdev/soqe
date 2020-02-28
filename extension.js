@@ -29,8 +29,6 @@ function activate(context) {
 		if(!username){
 			return toast(`No defaultusername found in ${WORKING_DIR}/.sfdx/sfdx-config.json`, 'info')
 		}
-		
-		//toast(`Using ${username}`, 'status')
 
 		const panel = vscode.window.createWebviewPanel(
 			'soqlView',
@@ -41,7 +39,6 @@ function activate(context) {
 			  retainContextWhenHidden: true,
 			}
 		);
-	  
 	  
 		panel.webview.html = getView()
 	  
@@ -104,7 +101,7 @@ async function getUserName(){
 
 		const path = `${WORKING_DIR}/.sfdx/sfdx-config.json`
 
-		const data = await fs.readFile(path)
+		const data = (await fs.readFile(path)).toString()
 
 		const { defaultusername } = JSON.parse( data )
 
@@ -155,15 +152,10 @@ async function execute(cmd) {
  * @param {String} path -- to use to see if it exists
  */
 async function exists(path) {
-	try {
 
-		const result = await fs.access(path)
+	const result = await fs.access(path)
 
-		return result && result.code === 'ENOENT' ? false : true
-	}
-	catch (error) {
-		console.error(error)
-	}
+	return result && result.code === 'ENOENT' ? false : true
 }
 
 
@@ -302,31 +294,51 @@ function setupTable(records){
 
 	clearTable()
 
-	records.map(x => {
+	records.map(record => {
 
 		if(!cache.columns.length){
 
-			const potentials = Object.keys(x).filter(item => item !== 'attributes')
+			const potentials = Object.keys(record).filter(item => item !== 'attributes')
     
 
 			const uniques = potentials.reduce((acc, item, index) => {
 
-				if(potentials.indexOf(item) === index){
+				const isUnique = potentials.indexOf(item) === index
+
+				if( isUnique ){
 					
-					if(typeof x[item] === 'object'){
+					const parent = potentials[index]
+					const parent_value = record[item]
+
+					if(typeof parent_value === 'object'){
 						
-						const child_potentials = Object.keys(x[item]).filter(item => item !== 'attributes')
+						const child_potentials = Object.keys( parent_value ).filter(item => item !== 'attributes')
 
 						const children = child_potentials.map(child => {
-							if(typeof x[item][child] === 'object'){
-								//?
+
+							const child_value = parent_value[child]
+
+							if(typeof child_value === 'object'){
 								
-								const nested_child = Object.keys( x[item][child] ).filter(item => item !== 'attributes') //?
-								nested_child //?
-								return potentials[index]+' '+child+' '+nested_child
+								const grand_child_potentials = Object.keys( child_value ).filter(item => item !== 'attributes')
+
+								const grand_children = grand_child_potentials.map(grand_child => {
+
+									const grand_child_value = parent_value[grand_child]
+								
+									if(typeof grand_child_value === 'object'){
+
+										const great_grand_child = Object.keys( grand_child_value ).find(item => item !== 'attributes')
+										// SOQL traverse limit
+										return parent+' '+child+' '+grand_child+' '+great_grand_child
+									}
+									else{
+										return parent+' '+child+' '+grand_child
+									}
+								})
 							}
 							else{
-								return potentials[index]+' '+child
+								return parent+' '+child
 							}
 							
 						})
@@ -334,7 +346,7 @@ function setupTable(records){
 						acc = [ ...acc, ...children ]
 					}
 					else {
-						acc = [ ...acc, potentials[index] ]
+						acc = [ ...acc, parent ]
 					}
 				}
 
@@ -354,20 +366,22 @@ function setupTable(records){
 
 		const values = cache.columns.map(key => {
 
-			if(x[key]){
-				return x[key]
+			if( record[key] ){
+				return record[key]
 			}
+
+			console.log(key)
 
 			const data = key.split(' ')
 
 			// nested child
 			if(data.length === 2){
-				return x[ data[0] ][ data[1] ]
+				return record[ data[0] ][ data[1] ]
 			}
 			// nested nested child
 			if(data.length === 3){
 
-				return x[ data[0] ][ data[1] ][ data[2] ]
+				return record[ data[0] ][ data[1] ][ data[2] ]
 			}
 		})
 
