@@ -31,7 +31,7 @@ module.exports = {
  */
 function activate(context) {
 
-	const task = vscode.commands.registerCommand('extension.soql', async function () {
+	const task = vscode.commands.registerCommand('extension.soqe', async function () {
 
 		const username = await getUserName()
 
@@ -40,8 +40,8 @@ function activate(context) {
 		}
 
 		const panel = vscode.window.createWebviewPanel(
-			'soqlView',
-			'SOQL View',
+			'soqeView',
+			'SOQE View',
 			vscode.ViewColumn.One,
 			{
 			  enableScripts: true,
@@ -105,19 +105,16 @@ function activate(context) {
 				clearDirectory()
 			}
 			else if(data.type === 'back'){
-				console.log('BACK')		
+
 				const storage_path = path.join(WORKING_DIR, '.soql')
 
 				const files = await fs.readdir(storage_path)
-				console.log(files)
-				console.log(data)
 
 				if(data.timestamp){
 			
 					const curr = `${data.timestamp}.json`
 			
 					const index = files.indexOf(curr)
-					console.log(index)
 
 					if(index > 0){
 						const file = files[index-1]
@@ -135,8 +132,6 @@ function activate(context) {
 				const storage_path = path.join(WORKING_DIR, '.soql')
 
 				const files = await fs.readdir(storage_path)
-				console.log(files)
-				console.log(data.timestamp)
 
 				if(data.timestamp){
 			
@@ -230,7 +225,7 @@ function toast( message, type ){
 		showInformationMessage(message)
 	}
 	else if(type === 'status'){
-		setStatusBarMessage(`ℹ️ SOQL: ${message}`)
+		setStatusBarMessage(`ℹ️ SOQE: ${message}`)
 	}
 	else {
 		showInformationMessage(message)
@@ -252,12 +247,10 @@ async function readStorage(){
 
 async function readJsonFile (path) {
 
-	console.log('readJsonFile =>')
-	console.log(path)
 	try {
 
 		const packageObj = await fs.readJson(path)
-		console.log(packageObj)
+
 		return packageObj
 	}
 	catch (error) {
@@ -388,12 +381,12 @@ return /* html */`
 		<b>Total Size: </b><span id="current_totalSize"></span>
 	</div>
 	<div>
-		<b>Current Query: </b>
-		<span id="current_query"></span>
-	</div>
-	<div>
 		<b>Current timestamp: </b>
 		<span id="current_timestamp"></span>
+	</div>
+	<div>
+		<b>Current Query: </b>
+		<span id="current_query"></span>
 	</div>
 	<div id="results">
 		<table>
@@ -483,11 +476,6 @@ window.addEventListener('message', event => {
 		query,
 	} = data;
 
-	console.dir('HAS DATA')
-	console.dir(columns)
-	console.dir(totalSize)
-	console.dir(timestamp)
-
 
 	cache.totalSize = totalSize
 	cache.timestamp = timestamp
@@ -541,9 +529,6 @@ function setupTable(records, columns){
 
 		const values = columns.map(key => getValue(key, record))
 
-		console.log('values => => =>')
-		console.dir(values)
-
 		values.map(value => {
 			tr.appendChild( mkTD( value ))
 		})
@@ -564,7 +549,6 @@ function getValue(key, record){
 		return record[key]
 	}
 
-	console.log(key)	
 	const data = key.split('.')
 
 	// nested child
@@ -610,125 +594,3 @@ function clearTable(){
 </html>
 `
 }
-
-
-
-/* 
-
-		const values = columns.map(key => {
-
-			if( record[key] ){
-				return record[key]
-			}
-
-			console.log(key)
-
-			const data = key.split(' ')
-
-			// nested child
-			if(data.length === 2){
-				return record[ data[0] ][ data[1] ]
-			}
-			// nested nested child
-			if(data.length === 3){
-
-				return record[ data[0] ][ data[1] ][ data[2] ]
-			}
-		})
-records.map(record => {
-
-	if(!cache.columns.length){
-
-		const potentials = Object.keys(record).filter(item => item !== 'attributes')
-
-
-		const uniques = potentials.reduce((acc, item, index) => {
-
-			const isUnique = potentials.indexOf(item) === index
-
-			if( isUnique ){
-				
-				const parent = potentials[index]
-				const parent_value = record[item]
-
-				if(typeof parent_value === 'object'){
-					
-					const child_potentials = Object.keys( parent_value ).filter(item => item !== 'attributes')
-
-					const children = child_potentials.map(child => {
-
-						const child_value = parent_value[child]
-
-						if(typeof child_value === 'object'){
-							
-							const grand_child_potentials = Object.keys( child_value ).filter(item => item !== 'attributes')
-
-							const grand_children = grand_child_potentials.map(grand_child => {
-
-								const grand_child_value = parent_value[grand_child]
-							
-								if(typeof grand_child_value === 'object'){
-
-									const great_grand_child = Object.keys( grand_child_value ).find(item => item !== 'attributes')
-									// SOQL traverse limit
-									return parent+' '+child+' '+grand_child+' '+great_grand_child
-								}
-								else{
-									return parent+' '+child+' '+grand_child
-								}
-							})
-						}
-						else{
-							return parent+' '+child
-						}
-						
-					})
-					
-					acc = [ ...acc, ...children ]
-				}
-				else {
-					acc = [ ...acc, parent ]
-				}
-			}
-
-			return acc
-		}, []);
-
-	}
-
-
-	const values = cache.columns.map(key => {
-
-		if( record[key] ){
-			return record[key]
-		}
-
-		console.log(key)
-
-		const data = key.split(' ')
-
-		// nested child
-		if(data.length === 2){
-			return record[ data[0] ][ data[1] ]
-		}
-		// nested nested child
-		if(data.length === 3){
-
-			return record[ data[0] ][ data[1] ][ data[2] ]
-		}
-	})
-
-	const tr = document.createElement('tr')
-
-	values.map(value => {
-
-		const td = document.createElement('td')
-		td.textContent = value
-		tr.appendChild(td)
-	})
-
-	dom.tbody.appendChild(tr)
-})
-*/
-
-
