@@ -1,15 +1,15 @@
 {
-	"name": "soql",
-	"displayName": "soql",
-	"description": "Query Salesforce data",
-	"version": "0.0.1",
+	"name": "soqe",
+	"displayName": "SOQE",
+	"description": "Salesforce Object Query Extension (saké)",
+	"version": "0.0.5",
 	"publisher": "jamiesmiths",
 	"repository": {
-		"url": "https://github.com/jsmithdev/soql",
+		"url": "https://github.com/jsmithdev/soqe",
 		"type": "git"
 	},
 	"bugs": {
-		"url": "https://github.com/jsmithdev/soql/issues"
+		"url": "https://github.com/jsmithdev/soqe/issues"
 	},
 	"license": "MIT",
 	"engines": {
@@ -19,14 +19,14 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.soql"
+		"onCommand:extension.soqe"
 	],
 	"main": "./extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.soql",
-				"title": "SOQL: Open View"
+				"command": "extension.soqe",
+				"title": "SOQE: Open SOQL Editor+Viewer"
 			}
 		]
 	},
