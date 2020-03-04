@@ -18,6 +18,11 @@
 	"categories": [
 		"Other"
 	],
+	"keywords": [
+		"SOQL",
+		"Salesforce",
+		"vscode"
+	],
 	"activationEvents": [
 		"onCommand:extension.soqe"
 	],
