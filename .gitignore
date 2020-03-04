@@ -5,3 +5,5 @@ node_modules
 test/suite/extension.test.js
 test/runTest.js
 scratchpad.js
+scratch.js
+.soql
