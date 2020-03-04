@@ -16,8 +16,9 @@ const {
 
 
 const WORKING_DIR = `${vscode.workspace.workspaceFolders[0].uri.fsPath}`
-const STORAGE_PATH = `${WORKING_DIR}/.soql`
-ensureStore( STORAGE_PATH )
+const STORAGE_PATH = path.join(WORKING_DIR, '.soql')
+
+ensureDirectory( STORAGE_PATH )
 
 
 exports.activate = activate
@@ -87,7 +88,7 @@ function activate(context) {
 
 				const timestamp = new Date().getTime()
 
-				const file_path = `${STORAGE_PATH}/${timestamp}.json`
+				const file_path = path.join(STORAGE_PATH, `${timestamp}.json`)
 
 				result.timestamp = timestamp
 				result.query = query
@@ -106,9 +107,7 @@ function activate(context) {
 			}
 			else if(data.type === 'back'){
 
-				const storage_path = path.join(WORKING_DIR, '.soql')
-
-				const files = await fs.readdir(storage_path)
+				const files = await fs.readdir(STORAGE_PATH)
 
 				if(data.timestamp){
 			
@@ -118,20 +117,18 @@ function activate(context) {
 
 					if(index > 0){
 						const file = files[index-1]
-						const result = await readJsonFile(path.join(storage_path, file))
+						const result = await readJsonFile(path.join(STORAGE_PATH, file))
 						panel.webview.postMessage(result)
 					}
 				}
 				else {
-					const result = await readJsonFile(path.join(storage_path, `${files[files.length-1]}`))
+					const result = await readJsonFile(path.join(STORAGE_PATH, `${files[files.length-1]}`))
 					panel.webview.postMessage(result)
 				}
 			}
 			else if(data.type === 'forward'){
-								
-				const storage_path = path.join(WORKING_DIR, '.soql')
-
-				const files = await fs.readdir(storage_path)
+				
+				const files = await fs.readdir(STORAGE_PATH)
 
 				if(data.timestamp){
 			
@@ -141,12 +138,12 @@ function activate(context) {
 			
 					if(index < files.length-1){
 						const file = files[index+1]
-						const result = await readJsonFile(path.join(storage_path, file))
+						const result = await readJsonFile(path.join(STORAGE_PATH, file))
 						panel.webview.postMessage(result)
 					}
 				}
 				else {
-					const result = await readJsonFile(path.join(storage_path, `${files[files.length-1]}`))
+					const result = await readJsonFile(path.join(STORAGE_PATH, `${files[files.length-1]}`))
 					panel.webview.postMessage(result)
 				}
 			}
@@ -164,13 +161,10 @@ function activate(context) {
 async function clearDirectory(){
 	
 	try {
+		
+		const files = await fs.readdir(STORAGE_PATH)
 
-		//remove records from .soql
-		const storage_path = `${WORKING_DIR}/.soql`
-						
-		const files = await fs.readdir(storage_path)
-
-		const getPath = file => path.join(storage_path, file)
+		const getPath = file => path.join(STORAGE_PATH, file)
 
 		files.map(file => fs.remove(getPath(file), error => error ? toast(error.message, 'error') : toast('Cleared .soql', 'status')))
 	}
@@ -183,13 +177,10 @@ async function clearDirectory(){
  * 
  * @param {String} path to ensure exists
  */
-async function ensureStore(path){
+async function ensureDirectory(path){
 	
 	try {
-
-		if( !(await exists(path)) ){
-			await fs.mkdir(path)
-		}
+		return fs.ensureDir(path)
 	}
 	catch (error) {
 		toast( error.message, 'error' )
@@ -237,11 +228,9 @@ function toast( message, type ){
 
 async function readStorage(){
 
-	const storage_path = path.join(WORKING_DIR, '.soql')
+	const files = await fs.readdir(STORAGE_PATH)
 
-	const files = await fs.readdir(storage_path)
-
-	files.map(file => readJsonFile(path.join(storage_path, file)))
+	files.map(file => readJsonFile(path.join(STORAGE_PATH, file)))
 }
 
 
