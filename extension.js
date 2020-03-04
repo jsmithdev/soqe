@@ -16,7 +16,8 @@ const {
 
 
 const WORKING_DIR = `${vscode.workspace.workspaceFolders[0].uri.fsPath}`
-
+const STORAGE_PATH = `${WORKING_DIR}/.soql`
+ensureStore( STORAGE_PATH )
 
 
 exports.activate = activate
@@ -84,21 +85,75 @@ function activate(context) {
 					}
 				})
 
-				panel.webview.postMessage(result)
+				const timestamp = new Date().getTime()
 
+				const file_path = `${STORAGE_PATH}/${timestamp}.json`
+
+				result.timestamp = timestamp
+				result.query = query
+				result.username = username
+				
 				// if want to save 
 				if(data.store === true){
-					
-					local_save(JSON.stringify({
-						query,
-						username,
-						result,
-					}))
+					fs.writeJson(file_path, result)
 				}
+
+				panel.webview.postMessage(result)
 			}
 			else if(data.type === 'delete_all'){
 						
 				clearDirectory()
+			}
+			else if(data.type === 'back'){
+				console.log('BACK')		
+				const storage_path = path.join(WORKING_DIR, '.soql')
+
+				const files = await fs.readdir(storage_path)
+				console.log(files)
+				console.log(data)
+
+				if(data.timestamp){
+			
+					const curr = `${data.timestamp}.json`
+			
+					const index = files.indexOf(curr)
+					console.log(index)
+
+					if(index > 0){
+						const file = files[index-1]
+						const result = await readJsonFile(path.join(storage_path, file))
+						panel.webview.postMessage(result)
+					}
+				}
+				else {
+					const result = await readJsonFile(path.join(storage_path, `${files[files.length-1]}`))
+					panel.webview.postMessage(result)
+				}
+			}
+			else if(data.type === 'forward'){
+								
+				const storage_path = path.join(WORKING_DIR, '.soql')
+
+				const files = await fs.readdir(storage_path)
+				console.log(files)
+				console.log(data.timestamp)
+
+				if(data.timestamp){
+			
+					const curr = `${data.timestamp}.json`
+			
+					const index = files.indexOf(curr)
+			
+					if(index < files.length-1){
+						const file = files[index+1]
+						const result = await readJsonFile(path.join(storage_path, file))
+						panel.webview.postMessage(result)
+					}
+				}
+				else {
+					const result = await readJsonFile(path.join(storage_path, `${files[files.length-1]}`))
+					panel.webview.postMessage(result)
+				}
 			}
 			
 		})
@@ -131,25 +186,18 @@ async function clearDirectory(){
 
 /**
  * 
- * @param {String} content to save to .soql
+ * @param {String} path to ensure exists
  */
-async function local_save(content){
+async function ensureStore(path){
 	
 	try {
 
-		//save records to .soql
-		const storage_path = `${WORKING_DIR}/.soql`
-
-		if( !(await exists(storage_path)) ){
-			await fs.mkdir(storage_path)
+		if( !(await exists(path)) ){
+			await fs.mkdir(path)
 		}
-
-		const file_path = `${storage_path}/data_${new Date().getTime()}.json`
-
-		fs.writeFile(file_path, content)
 	}
 	catch (error) {
-		error( error )
+		toast( error.message, 'error' )
 	}
 }
 
@@ -204,10 +252,12 @@ async function readStorage(){
 
 async function readJsonFile (path) {
 
+	console.log('readJsonFile =>')
+	console.log(path)
 	try {
 
 		const packageObj = await fs.readJson(path)
-		//console.log(packageObj)
+		console.log(packageObj)
 		return packageObj
 	}
 	catch (error) {
@@ -341,6 +391,10 @@ return /* html */`
 		<b>Current Query: </b>
 		<span id="current_query"></span>
 	</div>
+	<div>
+		<b>Current timestamp: </b>
+		<span id="current_timestamp"></span>
+	</div>
 	<div id="results">
 		<table>
 			<thead></thead>
@@ -355,11 +409,14 @@ const vscode = acquireVsCodeApi()
 
 const dom = {
 	current_query: document.getElementById('current_query'),
+	current_timestamp: document.getElementById('current_timestamp'),
 	results: document.getElementById('results'),
 	soql: document.getElementById('soql'),
+	back: document.getElementById('back'),
 	query: document.getElementById('query'),
 	querySave: document.getElementById('querySave'),
 	deleteStored: document.getElementById('deleteStored'),
+	forward: document.getElementById('forward'),
 	current_totalSize: document.getElementById('current_totalSize'),
 	thead: document.querySelector('thead'),
 	tbody: document.querySelector('tbody'),
@@ -380,6 +437,13 @@ const cache = {
 		this._totalSize = totalSize
 		dom.current_totalSize.textContent = totalSize
 	},
+	get timestamp(){
+		return this._current_timestamp
+	},
+	set timestamp(value){
+		this._current_timestamp = value
+		dom.current_timestamp.textContent = value
+	},
 }
 
 
@@ -387,20 +451,47 @@ const cache = {
 dom.query.onclick = event => executeQuery(dom.soql.value)
 dom.querySave.onclick = event => executeQuerySave(dom.soql.value)
 dom.deleteStored.onclick = event => deleteStored()
+dom.back.onclick = event => back()
+dom.forward.onclick = event => forward()
 
+function back(){
+	
+	vscode.postMessage({ 
+		type: 'back', 
+		timestamp: cache.timestamp,
+	})
+}
+function forward(){
+	
+	vscode.postMessage({ 
+		type: 'forward', 
+		timestamp: cache.timestamp,
+	})
+}
 
 window.addEventListener('message', event => {
 
 	const { data } = event
+
 
 	const {
 		done,
 		columns,
 		records,
 		totalSize,
+		timestamp,
+		query,
 	} = data;
 
+	console.dir('HAS DATA')
+	console.dir(columns)
+	console.dir(totalSize)
+	console.dir(timestamp)
+
+
 	cache.totalSize = totalSize
+	cache.timestamp = timestamp
+	cache.query = query
 
 	setupTable( records, columns )
 })
