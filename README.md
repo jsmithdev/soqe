@@ -1,6 +1,8 @@
-# SOQE
+# SOQE (saké) 🦄
 
-## Salesforce Object Query Extension (saké) 🦄
+## Salesforce Object Query Extension
+
+Early releases are free to install [here on the VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=jamiesmiths.soqe)
 
 ![SOQE View](https://i.imgur.com/EIq4lD2.png)
 
