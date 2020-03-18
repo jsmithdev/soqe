@@ -1,5 +1,101 @@
 
+const path = require('path')
+const util = require('util')
+
+const fs = require('fs-extra')
+
+const exec = util.promisify(require('child_process').exec)
+
+
+const {
+	toast,
+} = require('./toast');
+
+
 module.exports = {
+
+    /**
+     * 
+     * @description remove all files from .soql directory
+     * @param {String} directory to remove children
+     */
+    clearDirectory: async (directory) => {
+        
+        try {
+            
+            const files = await fs.readdir(directory)
+
+            const getPath = file => path.join(directory, file)
+
+            files.map(file => fs.remove(getPath(file), error => error ? toast(error.message, 'error') : toast('Cleared .soql', 'status')))
+        }
+        catch (error) {
+            toast( error.message, 'error' )
+        }
+    },
+
+    /**
+     * 
+     * @param {String} path to ensure exists
+     */
+    ensureDirectory: async (path) => {
+        
+        try {
+            return fs.ensureDir(path)
+        }
+        catch (error) {
+            toast( error.message, 'error' )
+        }
+    },
+
+
+    getUserName: async (path) => {
+        
+        try {
+
+            const file = `${path}/.sfdx/sfdx-config.json`
+
+            const data = (await fs.readFile(file)).toString()
+
+            const { defaultusername } = JSON.parse( data )
+
+            return defaultusername
+        }
+        catch (error) {
+            toast( error.message, 'error' )
+        }
+    },
+
+
+    readJsonFile: async (path) => {
+
+        try {
+
+            const packageObj = await fs.readJson(path)
+
+            return packageObj
+        }
+        catch (error) {
+            toast(error.message, 'error')
+        }
+    },
+
+
+    execute: async (cmd) => {
+        try {
+
+            const { stdout, stderr } = await exec( cmd )
+
+            if(stderr){
+                return toast(stderr, 'error')
+            }
+
+            return stdout
+        }
+        catch (error) {
+            toast(error.message, 'error') // should contain code (exit code) and signal (that caused the termination)
+        }
+    },
 
     /**
      * 
