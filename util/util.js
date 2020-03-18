@@ -8,6 +8,10 @@ module.exports = {
      */
     flatten_record(record, columns) {
 
+        if( typeof record !== 'object' || record == null ){
+            return console.log(record)
+        }
+
         return Object.keys(record)
         .filter(key => key !== 'attributes')
         .reduce((acc, key) => {
@@ -24,6 +28,10 @@ module.exports = {
             else {
 
                 const record = value
+
+                if( typeof record !== 'object' || record == null ){
+                    return console.log(record)
+                }
                 
                 acc[key] = Object.keys(record)
                 .filter(key => key !== 'attributes')
@@ -90,9 +98,9 @@ module.exports = {
                                                 return acc
                                             }
                                             else {
-                                                console.error('SOQE LIMIT: SOQL LIMIT is 4 traverses')
+                                                console.error('SOQE: SOQL has traverse limit; Please open issue if hit.')
                                             }
-                            
+                                            
                                             return acc
                                         }, {});
                                     }
