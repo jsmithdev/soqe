@@ -9,7 +9,7 @@ module.exports = {
     flatten_record(record, columns) {
 
         if( typeof record !== 'object' || record == null ){
-            return console.log(record)
+            return 
         }
 
         return Object.keys(record)
@@ -29,8 +29,8 @@ module.exports = {
 
                 const record = value
 
-                if( typeof record !== 'object' || record == null ){
-                    return console.log(record)
+                if( record == null ){
+                    return 
                 }
                 
                 acc[key] = Object.keys(record)
