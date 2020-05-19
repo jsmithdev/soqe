@@ -59,7 +59,7 @@ function activate(context) {
 			
 			if(data.type === 'query'){
 					
-				const query = data.query.replace(/\n/g, '').trim()
+				const query = data.query.replace(/\n/g, ' ').trim()
 
 				if(!query){
 					return toast('A valid SOQL query is required', 'info')
