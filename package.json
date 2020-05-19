@@ -12,6 +12,7 @@
 		"url": "https://github.com/jsmithdev/soqe/issues"
 	},
 	"license": "MIT",
+	"icon": "icon/icon.png",
 	"engines": {
 		"vscode": "^1.42.0"
 	},
