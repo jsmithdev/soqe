@@ -4,6 +4,8 @@
 
 Early releases are free to install [here on the VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=jamiesmiths.soqe)
 
+> Note: Now there is an offical way to SOQL in VS Code [here](https://developer.salesforce.com/tools/vscode/en/soql/writing), however it doesn't have the ability to write to a file, needs to be an sfdx project, etc so not archiving / still has a place in my vs code :)
+
 ![SOQE View](https://i.imgur.com/EIq4lD2.png)
 
 ### Goals
