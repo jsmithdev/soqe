@@ -12,6 +12,25 @@ const {
 } = require('./toast');
 
 
+
+/**
+ * Better error messages
+ * @param {Object} stdout - object containing error's stdout resulting from the command
+ * @returns {String} - prettier error message
+ */
+function prettyError(stdout){
+
+    const m = stdout.message
+    const noIndex = m.indexOf('No such column')
+
+    if(noIndex){
+        return `${stdout.name}: ${m.substring(noIndex, m.indexOf('. '))}`
+    }
+
+    return `${stdout.name}: ${m.substring(0, 100)}`
+}
+
+
 module.exports = {
 
     /**
@@ -87,13 +106,17 @@ module.exports = {
             const { stdout, stderr } = await exec( cmd )
 
             if(stderr){
+                console.log(stderr)
                 return toast(stderr, 'error')
             }
-
+            
             return stdout
         }
         catch (error) {
-            toast(error.message, 'error') // should contain code (exit code) and signal (that caused the termination)
+
+            const stdout = JSON.parse(error.stdout)
+
+            toast(prettyError(stdout), 'error') // should contain code (exit code) and signal (that caused the termination)
         }
     },
 
@@ -217,4 +240,3 @@ module.exports = {
         }, {});
     },
 }
-
