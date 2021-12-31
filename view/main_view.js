@@ -87,7 +87,6 @@ function main_view() {
             <span id="current_timestamp"></span>
         </div>
         <div>
-            <b>Current Query: </b>
             <span id="current_query"></span>
         </div>
         <div id="results">
