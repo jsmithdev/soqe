@@ -2,7 +2,7 @@
 	"name": "soqe",
 	"displayName": "SOQE",
 	"description": "Salesforce Object Query Extension (saké)",
-	"version": "0.2.2",
+	"version": "0.2.5",
 	"publisher": "jamiesmiths",
 	"repository": {
 		"url": "https://github.com/jsmithdev/soqe",
