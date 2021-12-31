@@ -48,7 +48,7 @@ function main_view() {
             <textarea
                 autocomplete="on"
                 id="soql"
-            >SELECT Id, Name, Account.Name, Account.CreatedBy.Name FROM Contact LIMIT 2</textarea>
+            >SELECT Id, Name, Account.Name, Account.CreatedBy.Name \nFROM Contact \nLIMIT 2</textarea>
         </div>
     
         <div>
