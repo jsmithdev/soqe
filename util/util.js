@@ -217,7 +217,9 @@ module.exports = {
                                                 return acc
                                             }
                                             else {
-                                                console.error('SOQE: SOQL has traverse limit; Please open issue if hit.')
+                                                const msg = 'SOQE: SOQL has traverse limit; Please open issue if hit.'
+                                                toast( msg, 'error' )
+                                                console.error(msg)
                                             }
                                             
                                             return acc

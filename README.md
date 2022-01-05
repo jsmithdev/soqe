@@ -6,23 +6,26 @@ Free to install [here on the VS Code marketplace](https://marketplace.visualstud
 
 ![SOQE View](https://i.imgur.com/EIq4lD2.png)
 
-### Goals
+### Features
 
 - view Salesforce data quickly & easily in vs code
+  - have potential to use data for LWC/Node/JS testing, scratch pads, etc
 
-- store Salesforce data to look back at what was queried before and after for a particular project
+- choose to save to look back at what was queried before
+  - saves under {PROJECT ROOT}/.soql
 
 - run in a SFDX project w/o any extra config
 
-  - not have to be SFDX project, for instance a Node middleware integration
+  - works in any project as long as `{PROJECT ROOT}/.sfdx/sfdx-config.json` contains a `defaultusername` key/value -- for integrations, etc
 
-    - as long as `ROOT/.sfdx/sfdx-config.json` contains a `defaultusername` key/value
+  - surfaces a message when no `defaultusername` is found
 
-    - toast should say as much when no `defaultusername` is found)
+- attempts to surface only the important parts of error messages from sfdx (if need be)
 
-- have potential to use data for LWC/Node/JS testing, scratch pads, etc
+### Hotkeys
 
-- attempts to surface important parts of error messages
+- inside the text editor, you can hit `Ctrl+Enter` to run the query
+- inside the text editor, you can hit `Ctrl+Shift+Enter` to run the query & save it
 
 ---
 

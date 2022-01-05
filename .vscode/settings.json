@@ -1,6 +1,9 @@
 {
     "cSpell.words": [
+        "defaultusername",
         "jamiesmiths",
         "soqe"
-    ]
+    ],
+    "javascript.suggestionActions.enabled": false
+
 }

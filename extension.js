@@ -104,7 +104,7 @@ function activate(context) {
 				panel.webview.postMessage(result)
 			}
 			else if(data.type === 'delete_all'){
-						
+			
 				clearDirectory(STORAGE_PATH)
 			}
 			else if(data.type === 'back'){

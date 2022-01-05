@@ -148,6 +148,9 @@ function main_view() {
     dom.back.onclick = event => back()
     dom.forward.onclick = event => forward()
     
+    const isCtrlEnter = e => (e.ctrlKey || e.metaKey) && e.key === 'Enter' && !e.shiftKey;
+    const isCtrlShiftEnter = e => (e.ctrlKey || e.metaKey) && e.key === 'Enter' && e.shiftKey;
+
     function back(){
         
         vscode.postMessage({ 
@@ -162,11 +165,15 @@ function main_view() {
             timestamp: cache.timestamp,
         })
     }
+
+    dom.soql.addEventListener('keyup', event => {
+        if ( isCtrlEnter(event) ) { executeQuery(dom.soql.value) }
+        if ( isCtrlShiftEnter(event) ) { executeQuerySave(dom.soql.value) }
+    })
     
     window.addEventListener('message', event => {
     
         const { data } = event
-    
     
         const {
             done,
@@ -294,4 +301,4 @@ function main_view() {
     </script>
     </html>
     `
-    }
+}
