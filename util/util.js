@@ -107,7 +107,7 @@ module.exports = {
 
             if(stderr){
                 console.log(stderr)
-                return toast(stderr, 'error')
+                toast(stderr, 'error')
             }
             
             return stdout
