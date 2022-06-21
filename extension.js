@@ -66,7 +66,7 @@ function activate(context) {
 				}
 				
 
-				const cmd = `sfdx force:data:soql:query --json -u ${username} -q "${query}" `
+				const cmd = `SFDX_JSON_TO_STDOUT=true sfdx force:data:soql:query --json -u ${username} -q "${query}" `
 
 				const results = await execute(cmd)
 				if(!results){ return }
